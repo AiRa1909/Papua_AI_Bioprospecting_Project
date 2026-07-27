@@ -24,3 +24,15 @@ This project uses Anthropic's Claude 3.5 Sonnet (via the GitHub Models API) to a
 * Built extractor.py to handle batch JSON extraction.
 * Added JSON-to-Pandas processing.
 * Processed first 100 target bacterial species and generated Excel spreadsheet output.
+
+## July 20--25
+* Did research on how to reach Claude again through github models, but failed 
+* Instead created free API Key on Anthropic developer account and did research on how to change code to accomodate Claude
+* Applied changes but then reverted as it turns out Claude requires credits payment to be used
+
+## July 25-27
+* Realized I did not make commits for the Claude incident, so I changed code back to Claude-suitable, committed on 27th, and reverted and recommitted to show that exploration was made
+* Upgraded `main.py` with automatic retry logic (`extract_species_data_with_retry`) to handle API timeouts smoothly.
+* Added regex string cleaning (`clean_species_name`) to strip leading index numbers and source tags from species names.
+* Added real-time incremental saving to `output/papua_microbial_sustainability_matrix.csv` so progress is never lost if a network error occurs.
+* Added an automated summary report generator (`generate_summary_report`) to tally BSL-1 and BSL-2 distributions.
