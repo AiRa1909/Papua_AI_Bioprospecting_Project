@@ -1,15 +1,20 @@
 import os
 import json
 import pandas as pd
-import anthropic
+from openai import OpenAI
+import time
 
-def get_claude_client():
+def get_ai_client():
     """Initializes client pointing to GitHub Models API."""
-    token = os.environ.get("ANTHROPIC_API_KEY")
+    token = os.environ.get("GITHUB_TOKEN")
     if not token:
-        raise ValueError("Error: ANTHROPIC_API_KEY environment variable is missing.")
+        raise ValueError("Error: GITHUB_TOKEN environment variable is missing in Run Configurations")
 
-    return anthropic.Anthropic(api_key=token)
+    return OpenAI(
+        base_url="https://models.inference.ai.azure.com",
+        api_key=token,
+    )
+
 
 def extract_species_data(client, species_name):
     """Prompting the LLM to extract structured trait data for a single species."""
@@ -25,17 +30,18 @@ def extract_species_data(client, species_name):
     """
 
     try:
-        response = client.messages.create(
-            model="claude-3-5-sonnet-20241022",  # Using the Official Claude model now
-            max_tokens=1024,
-            temperature=0.1,
-            system="You are a scientific data extraction engine. Output valid JSON only.",
+        response = client.chat.completions.create(
             messages=[
+                {"role": "system", "content": "You are a scientific data extraction engine. Output valid JSON only."},
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            # GitHub Models hosted model identifier:
+            model="gpt-4o-mini",
+            # Using GPT because Anthropic requires payment
+            temperature=0.1
         )
 
-        raw_output = response.content[0].text.strip() #new Anthropic response syntax
+        raw_output = response.choices[0].message.content.strip()
 
         # Cleaning markdown code blocks if returned!
         if raw_output.startswith("```json"):
@@ -56,7 +62,7 @@ def extract_species_data(client, species_name):
 
 
 def run_pipeline():
-    client = get_claude_client()
+    client = get_ai_client()
 
     # Check possible file paths for target species list
     possible_paths = [
@@ -88,6 +94,7 @@ def run_pipeline():
         print(f"[{index}/{len(species_list)}] Extracting data for: {name}...")
         data = extract_species_data(client, name)
         results.append(data)
+        time.sleep(2.0)
 
     # Convert results array to dataframe and export files yay!
     df = pd.DataFrame(results)
