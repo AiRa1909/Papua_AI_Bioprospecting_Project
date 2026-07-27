@@ -1,20 +1,15 @@
 import os
 import json
 import pandas as pd
-from openai import OpenAI
+import anthropic
 
-
-def get_ai_client():
+def get_claude_client():
     """Initializes client pointing to GitHub Models API."""
-    token = os.environ.get("GITHUB_TOKEN")
+    token = os.environ.get("ANTHROPIC_API_KEY")
     if not token:
-        raise ValueError("Error: GITHUB_TOKEN environment variable is missing in Run Configurations")
+        raise ValueError("Error: ANTHROPIC_API_KEY environment variable is missing.")
 
-    return OpenAI(
-        base_url="https://models.inference.ai.azure.com",
-        api_key=token,
-    )
-
+    return anthropic.Anthropic(api_key=token)
 
 def extract_species_data(client, species_name):
     """Prompting the LLM to extract structured trait data for a single species."""
@@ -30,18 +25,17 @@ def extract_species_data(client, species_name):
     """
 
     try:
-        response = client.chat.completions.create(
+        response = client.messages.create(
+            model="claude-3-5-sonnet-20241022",  # Using the Official Claude model now
+            max_tokens=1024,
+            temperature=0.1,
+            system="You are a scientific data extraction engine. Output valid JSON only.",
             messages=[
-                {"role": "system", "content": "You are a scientific data extraction engine. Output valid JSON only."},
                 {"role": "user", "content": prompt}
-            ],
-            # GitHub Models hosted model identifier:
-            model="gpt-4o-mini",
-            # only using gpt right now to test this code because I couldn't connect to Claude through Github Models
-            temperature=0.1
+            ]
         )
 
-        raw_output = response.choices[0].message.content.strip()
+        raw_output = response.content[0].text.strip() #new Anthropic response syntax
 
         # Cleaning markdown code blocks if returned!
         if raw_output.startswith("```json"):
@@ -62,7 +56,7 @@ def extract_species_data(client, species_name):
 
 
 def run_pipeline():
-    client = get_ai_client()
+    client = get_claude_client()
 
     # Check possible file paths for target species list
     possible_paths = [
