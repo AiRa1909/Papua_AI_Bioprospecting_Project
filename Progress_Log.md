@@ -20,7 +20,7 @@ This project uses Anthropic's Claude 3.5 Sonnet (via the GitHub Models API) to a
 ## June 28- July 19
 * Set up PyCharm virtual environment and directory structure.
 * Connected to GitHub Models API gateway using `GITHUB_TOKEN`.
-* Verified single-prompt handshake with gpt as Claude was not able to be reached through Github Models.
+* Verified single-              prompt handshake with gpt as Claude was not able to be reached through Github Models.
 * Built extractor.py to handle batch JSON extraction.
 * Added JSON-to-Pandas processing.
 * Processed first 100 target bacterial species and generated Excel spreadsheet output.
@@ -36,3 +36,8 @@ This project uses Anthropic's Claude 3.5 Sonnet (via the GitHub Models API) to a
 * Added regex string cleaning (`clean_species_name`) to strip leading index numbers and source tags from species names.
 * Added real-time incremental saving to `output/papua_microbial_sustainability_matrix.csv` so progress is never lost if a network error occurs.
 * Added an automated summary report generator (`generate_summary_report`) to tally BSL-1 and BSL-2 distributions.
+
+## August 2 
+* Github API Models was shut down, so a switch was made to Groq's free OpenAI Models 
+* Generated a Groq API Key and adjusted the code
+

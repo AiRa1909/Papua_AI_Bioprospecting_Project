@@ -6,13 +6,13 @@ import time
 import json
 
 def get_ai_client():
-    """Initializes client pointing to GitHub Models API."""
-    token = os.environ.get("GITHUB_TOKEN")
+    # Updated to look for Groq key instead of GitHub because it no longer exists
+    token = os.environ.get("GROQ_API_KEY")
     if not token:
-        raise ValueError("Error: GITHUB_TOKEN environment variable is missing in Run Configurations")
+        raise ValueError("Error: GROQ_API_KEY environment variable is missing in Run Configurations")
 
     return OpenAI(
-        base_url="https://models.inference.ai.azure.com",
+        base_url="https://api.groq.com/openai/v1",
         api_key=token,
     )
 
@@ -38,13 +38,12 @@ def extract_species_data_with_retry(client, species_name, max_retries=3):
     for attempt in range(1, max_retries + 1):
         try:
             response = client.chat.completions.create(
-            # GitHub Models hosted model identifier:
-                model="gpt-4o-mini",
+            # Using Groq's hosted Llama 3.3 70B model
+                model="llama-3.3-70b-versatile",
                 messages=[
                     {"role": "system", "content": "You are a scientific data extraction engine. Output valid JSON only."},
                     {"role": "user", "content": prompt}
                 ],
-            # Using GPT because Anthropic requires payment
             temperature=0.1
             )
 
