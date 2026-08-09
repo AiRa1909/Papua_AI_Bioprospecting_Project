@@ -1,0 +1,7 @@
+{
+    "model_name": "llama-3.3-70b-versatile",
+    "max_retries": 3,
+    "retry_delay": 2.0,
+    "temperature": 0.1,
+    "input_path": "Data/target-species.txt"
+}

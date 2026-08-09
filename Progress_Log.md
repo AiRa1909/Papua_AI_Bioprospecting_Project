@@ -41,3 +41,6 @@ This project uses Anthropic's Claude 3.5 Sonnet (via the GitHub Models API) to a
 * Github API Models was shut down, so a switch was made to Groq's free OpenAI Models 
 * Generated a Groq API Key and adjusted the code
 
+## August 2 - 9
+* Decoupled hardcoded parameters (model names, retry limits, delays, file paths etc.) into an external configuration file.  
+* Replaced standard print statements with Python's native logging module to track pipeline execution milestones and error traces inside output/app.log

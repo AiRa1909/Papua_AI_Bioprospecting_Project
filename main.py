@@ -4,6 +4,14 @@ import pandas as pd
 from openai import OpenAI
 import time
 import json
+from logger_setup import log_info, log_error
+
+
+def load_config():
+    """Loads external configurations from config.json."""
+    with open("config.json", "r") as f:
+        return json.load(f)
+
 
 def get_ai_client():
     # Updated to look for Groq key instead of GitHub because it no longer exists
@@ -16,15 +24,21 @@ def get_ai_client():
         api_key=token,
     )
 
+
 def clean_species_name(line):
     """Removes leading index numbers in species' names"""
     line = re.sub(r'\[source.*?\]', '', line)
     line = re.sub(r'^\d+\s*', '', line.strip())
     return line
 
-def extract_species_data_with_retry(client, species_name, max_retries=3):
-    """Prompting the LLM to extract structured trait data for a single species."""
-    """Retries up to 3 times if the API call or JSON parsing fails."""
+
+def extract_species_data_with_retry(client, species_name, config):
+    """Prompts the LLM to extract structured trait data with retry logic."""
+    max_retries = config.get("max_retries", 3)
+    retry_delay = config.get("retry_delay", 2.0)
+    model_name = config.get("model_name", "llama-3.3-70b-versatile")
+    temperature = config.get("temperature", 0.1)
+
     prompt = f"""
     Analyze the bacterial species "{species_name}" for sustainable bioprospecting.
     Return ONLY a raw JSON object (no markdown formatting, no extra text) with these exact keys:
@@ -38,13 +52,13 @@ def extract_species_data_with_retry(client, species_name, max_retries=3):
     for attempt in range(1, max_retries + 1):
         try:
             response = client.chat.completions.create(
-            # Using Groq's hosted Llama 3.3 70B model
-                model="llama-3.3-70b-versatile",
+                model=model_name,
                 messages=[
-                    {"role": "system", "content": "You are a scientific data extraction engine. Output valid JSON only."},
+                    {"role": "system",
+                     "content": "You are a scientific data extraction engine. Output valid JSON only."},
                     {"role": "user", "content": prompt}
                 ],
-            temperature=0.1
+                temperature=temperature
             )
 
             raw_output = response.choices[0].message.content.strip()
@@ -54,22 +68,22 @@ def extract_species_data_with_retry(client, species_name, max_retries=3):
             elif "```" in raw_output:
                 raw_output = raw_output.split("```")[1].split("```")[0].strip()
 
-            data = json.loads(raw_output)
-            return data
+            return json.loads(raw_output)
 
         except Exception as e:
-            print(f" [Attempt {attempt}/{max_retries}] Failed for '{species_name}': {e}")
-            time.sleep(2)
+            log_error(f"[Attempt {attempt}/{max_retries}] Failed for '{species_name}': {e}")
+            time.sleep(retry_delay)
+
     return {
-            "species_name": species_name,
-            "primary_function": "Error / Extraction Failed",
-            "sustainability_application": "N/A",
-            "biosafety_level": "Unknown"
-            }
+        "species_name": species_name,
+        "primary_function": "Error / Extraction Failed",
+        "sustainability_application": "N/A",
+        "biosafety_level": "Unknown"
+    }
 
 
 def generate_summary_report(df, output_dir):
-    """Generating a text summary of the bioprospecting matrix results."""
+    """Generates a text summary of the bioprospecting matrix results."""
     summary_path = os.path.join(output_dir, "summary_report.txt")
 
     total = len(df)
@@ -89,7 +103,6 @@ Biosafety Breakdown:
 
 Top Recommended BSL-1 Candidates:
 """
-    # Sample up to 5 BSL-1 species for a quick review
     bsl1_samples = df[df['biosafety_level'] == 'BSL-1'].head(5)
     for idx, row in bsl1_samples.iterrows():
         report_content += f" • {row['species_name']}: {row['sustainability_application']}\n"
@@ -97,35 +110,33 @@ Top Recommended BSL-1 Candidates:
     with open(summary_path, "w") as f:
         f.write(report_content)
 
-    print(f"Generated text summary report at: {summary_path}")
+    log_info(f"Generated text summary report at: {summary_path}")
+
 
 def run_pipeline():
+    config = load_config()
     client = get_ai_client()
 
-    # Check possible file paths for target species list
-    possible_paths = [
-        "target-species.txt",
-        "target_species.txt",
-        "data/target-species.txt",
-        "data/target_species.txt"
-    ]
-
-    input_file = None
-    for path in possible_paths:
-        if os.path.exists(path):
-            input_file = path
-            break
+    input_file = config.get("input_path", "Data/target-species.txt")
+    if not os.path.exists(input_file):
+        possible_paths = ["target-species.txt", "target_species.txt", "data/target-species.txt",
+                          "data/target_species.txt"]
+        input_file = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                input_file = path
+                break
 
     if not input_file:
-        print("Error: Could not find target species text file! Please check the file location.")
+        log_error("Could not find target species text file! Please check the file location.")
         return
 
-    print(f"Found species list at: '{input_file}'")
+    log_info(f"Found species list at: '{input_file}'")
 
     with open(input_file, "r") as f:
         species_list = [clean_species_name(line) for line in f if line.strip() and not line.startswith("[source")]
 
-    print(f"Starting extraction pipeline for {len(species_list)} species...\n")
+    log_info(f"Starting extraction pipeline for {len(species_list)} species...")
 
     os.makedirs("output", exist_ok=True)
     excel_path = "output/papua_microbial_sustainability_matrix.xlsx"
@@ -135,23 +146,20 @@ def run_pipeline():
     for index, name in enumerate(species_list, 1):
         if not name:
             continue
-        print(f"[{index}/{len(species_list)}] Extracting data for: {name}...")
-        data = extract_species_data_with_retry(client, name)
+        log_info(f"[{index}/{len(species_list)}] Extracting data for: {name}...")
+        data = extract_species_data_with_retry(client, name, config)
         results.append(data)
+
         temp_df = pd.DataFrame(results)
         temp_df.to_csv(csv_path, index=False)
-        # pause to respect API rate limits
-        time.sleep(2.0)
+        time.sleep(config.get("retry_delay", 2.0))
 
-    # Convert results array to dataframe and export files yay!
     df = pd.DataFrame(results)
     df.to_excel(excel_path, index=False)
     generate_summary_report(df, "output")
 
-    print("\n==========================================")
-    print("SUCCESS: Pipeline execution complete!")
-    print(f"Saved generated results to:\n - {excel_path}\n - {csv_path}")
-    print("==========================================")
+    log_info("Pipeline execution complete successfully!")
+
 
 if __name__ == "__main__":
     run_pipeline()
