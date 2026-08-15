@@ -1,5 +1,6 @@
 import os
 import re
+import argparse
 import pandas as pd
 from openai import OpenAI
 import time
@@ -14,7 +15,7 @@ def load_config():
 
 
 def get_ai_client():
-    # Updated to look for Groq key instead of GitHub because it no longer exists
+    """Initializes client pointing to Groq's API."""
     token = os.environ.get("GROQ_API_KEY")
     if not token:
         raise ValueError("Error: GROQ_API_KEY environment variable is missing in Run Configurations")
@@ -114,6 +115,10 @@ Top Recommended BSL-1 Candidates:
 
 
 def run_pipeline():
+    parser = argparse.ArgumentParser(description="Papua Microbial Bioprospecting Pipeline")
+    parser.add_argument("--limit", type=int, default=None, help="Limit number of species to process for testing")
+    args = parser.parse_args()
+
     config = load_config()
     client = get_ai_client()
 
@@ -135,6 +140,10 @@ def run_pipeline():
 
     with open(input_file, "r") as f:
         species_list = [clean_species_name(line) for line in f if line.strip() and not line.startswith("[source")]
+
+    if args.limit:
+        species_list = species_list[:args.limit]
+        log_info(f"Test mode active: Limiting execution to first {args.limit} species.")
 
     log_info(f"Starting extraction pipeline for {len(species_list)} species...")
 

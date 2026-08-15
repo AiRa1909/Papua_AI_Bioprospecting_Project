@@ -13,11 +13,11 @@ This project uses Anthropic's Claude 3.5 Sonnet (via the GitHub Models API) to a
 * Sent the official project proposal email to Ibu Sharlini and Kak Yazid.
 * Received their preferred contact channels.
 
-## June 20 - 28
+## June 20-28
 * Created the local PyCharm workspace and initiated the project directory.
 * Created the report document and began writing sections 1.1-1.2
 
-## June 28- July 19
+## June 28-19
 * Set up PyCharm virtual environment and directory structure.
 * Connected to GitHub Models API gateway using `GITHUB_TOKEN`.
 * Verified single-              prompt handshake with gpt as Claude was not able to be reached through Github Models.
@@ -25,7 +25,7 @@ This project uses Anthropic's Claude 3.5 Sonnet (via the GitHub Models API) to a
 * Added JSON-to-Pandas processing.
 * Processed first 100 target bacterial species and generated Excel spreadsheet output.
 
-## July 20--25
+## July 20-25
 * Did research on how to reach Claude again through github models, but failed 
 * Instead created free API Key on Anthropic developer account and did research on how to change code to accomodate Claude
 * Applied changes but then reverted as it turns out Claude requires credits payment to be used
@@ -41,6 +41,10 @@ This project uses Anthropic's Claude 3.5 Sonnet (via the GitHub Models API) to a
 * Github API Models was shut down, so a switch was made to Groq's free OpenAI Models 
 * Generated a Groq API Key and adjusted the code
 
-## August 2 - 9
+## August 2-9
 * Decoupled hardcoded parameters (model names, retry limits, delays, file paths etc.) into an external configuration file.  
 * Replaced standard print statements with Python's native logging module to track pipeline execution milestones and error traces inside output/app.log
+
+## August 10-15
+* Integrated Python's argparse module into main.py [learnt how to use args]. 
+* Added the --limit command-line flag to allow flexible test runs (so restricting execution to subset of species  from the terminal without modifying code parameters).

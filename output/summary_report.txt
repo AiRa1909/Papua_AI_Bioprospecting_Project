@@ -1,0 +1,16 @@
+==========================================
+PAPUA MICROBIAL BIOPROSPECTING SUMMARY
+==========================================
+Total Species Processed: 100
+
+Biosafety Breakdown:
+ - BSL-1 (Safe for general research): 87
+ - BSL-2 (Moderate biosafety risk): 9
+ - Unknown / Unclassified: 4
+
+Top Recommended BSL-1 Candidates:
+ • Methyloceanibacter caenitepidi: Bioremediation of methane emissions, production of biofuels, and development of eco-friendly technologies for greenhouse gas mitigation
+ • Thermomarinilinea lacunifontana: It has potential applications in sustainable biotechnology, such as bioremediation of polluted environments, production of biofuels, and development of novel therapeutics
+ • Litorilinea aerophila: Potential applications in bioremediation of polluted water, production of bioactive compounds, and development of sustainable aquaculture practices
+ • Filomicrobium fusiforme: Biofertilizers, bioremediation of contaminated soil and water, and development of sustainable agricultural practices
+ • Desulfofustis glycolicus: Bioremediation of contaminated soil and groundwater, production of biofuels and bioproducts, and potential use in sustainable agriculture practices
